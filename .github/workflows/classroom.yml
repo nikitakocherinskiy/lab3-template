@@ -84,16 +84,14 @@ jobs:
         run: docker compose build
 
       - name: Run containers
-        timeout-minutes: 30
+        timeout-minutes: 15
         run: |
           docker compose up -d
           docker ps
+          sleep 300s
+          ./scripts/wait-script.sh
         env:
           WAIT_PORTS: 8080,8070,8060,8050
-
-      - name: Sleep for 7 minutes
-        run: sleep 420s
-        shell: bash
 
       - name: Check container
         timeout-minutes: 30
@@ -105,7 +103,7 @@ jobs:
         run: ./scripts/test-script.sh
         env:
           VARIANT: v3
-          SERVICE_NAME: car-service
+          SERVICE_NAME: car_service
           PORT_NUMBER: 8070
 
       - name: Stop containers
