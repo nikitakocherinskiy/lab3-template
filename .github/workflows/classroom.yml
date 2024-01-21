@@ -7,7 +7,7 @@ on:
     branches:
       - master
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -79,58 +79,82 @@ jobs:
       - name: Run Unit Tests for rental-service
         run: npm run test --prefix rental-service
 
-  deploy:
-    needs: [test]
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+      - name: Build images
+        timeout-minutes: 30
+        run: docker compose build
 
-      - name: Send project files on VM
-        uses: appleboy/scp-action@v0.1.4
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ secrets.SSH_PORT }}
-          source: "car-service,filldb,gateway-service,payment-service,postgres,postman,rental-service,scripts,docker-compose.yml"
-          target: /home/${{ secrets.SSH_USER }}/rsoi-car-rental
-
-      - name: Build and up car-rental-service
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ secrets.SSH_PORT }}
-          script: |
-            cd /home/${{ secrets.SSH_USER }}/rsoi-car-rental
-            echo ${{ secrets.SSH_USER }} | sudo -S docker-compose down
-            echo ${{ secrets.SSH_USER }} | sudo -S docker rmi rsoi_car_rental_gateway
-            echo ${{ secrets.SSH_USER }} | sudo -S docker rmi rsoi_car_rental_rental
-            echo ${{ secrets.SSH_USER }} | sudo -S docker rmi rsoi_car_rental_car
-            echo ${{ secrets.SSH_USER }} | sudo -S docker rmi rsoi_car_rental_payment
-            echo ${{ secrets.SSH_USER }} | sudo -S docker-compose up -d
-
-  api-test:
-    needs: [deploy]
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Sleep for 7 minutes
-        run: sleep 420s
-        shell: bash
+      - name: Run containers
+        timeout-minutes: 30
+        run: |
+          docker compose up -d
+          ./scripts/wait-script.sh
+        env:
+          WAIT_PORTS: 8080,8070,8060,8050
 
       - name: Run API Tests
-        uses: matt-ball/newman-action@master
-        with:
-          collection: postman/collection.json
-          environment: postman/environment.json
-          delayRequest: 15
-          reporters: '[ "cli" ]'
+        timeout-minutes: 10
+        run: ./scripts/test-script.sh
+        env:
+          VARIANT: v3
+          SERVICE_NAME: car-service
+          PORT_NUMBER: 8050
+
+      - name: Stop containers
+        if: always()
+        continue-on-error: true
+        run: docker compose down -v
+  # deploy:
+  #   needs: [test]
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 30
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         fetch-depth: 0
+
+  #     - name: Send project files on VM
+  #       uses: appleboy/scp-action@v0.1.4
+  #       with:
+  #         host: ${{ secrets.SSH_HOST }}
+  #         username: ${{ secrets.SSH_USER }}
+  #         key: ${{ secrets.SSH_PRIVATE_KEY }}
+  #         port: ${{ secrets.SSH_PORT }}
+  #         source: "car-service,filldb,gateway-service,payment-service,postgres,postman,rental-service,scripts,docker-compose.yml"
+  #         target: /home/${{ secrets.SSH_USER }}/rsoi-car-rental
+
+  #     - name: Build and up car-rental-service
+  #       uses: appleboy/ssh-action@v1.0.0
+  #       with:
+  #         host: ${{ secrets.SSH_HOST }}
+  #         username: ${{ secrets.SSH_USER }}
+  #         key: ${{ secrets.SSH_PRIVATE_KEY }}
+  #         port: ${{ secrets.SSH_PORT }}
+  #         script: |
+  #           cd /home/${{ secrets.SSH_USER }}/rsoi-car-rental
+  #           echo ${{ secrets.SSH_USER }} | sudo -S docker-compose down
+  #           echo ${{ secrets.SSH_USER }} | sudo -S docker rmi rsoi_car_rental_gateway
+  #           echo ${{ secrets.SSH_USER }} | sudo -S docker rmi rsoi_car_rental_rental
+  #           echo ${{ secrets.SSH_USER }} | sudo -S docker rmi rsoi_car_rental_car
+  #           echo ${{ secrets.SSH_USER }} | sudo -S docker rmi rsoi_car_rental_payment
+  #           echo ${{ secrets.SSH_USER }} | sudo -S docker-compose up -d
+
+  # api-test:
+  #   # needs: [deploy]
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 30
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         fetch-depth: 0
+
+  # - name: Sleep for 7 minutes
+  #   run: sleep 420s
+  #   shell: bash
+
+  # - name: Run API Tests
+  #   uses: matt-ball/newman-action@master
+  #   with:
+  #     collection: postman/collection.json
+  #     environment: postman/environment.json
+  #     delayRequest: 15
+  #     reporters: '[ "cli" ]'

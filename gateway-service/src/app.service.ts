@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
@@ -5,9 +6,12 @@ import { CreateRentalDto } from 'global-models/createRentalDto';
 import { PaymentInfo } from 'global-models/paymentInfo';
 @Injectable()
 export class AppService {
-  private carsServiceUrl: string = 'http://car-service:8070';
-  private rentalServiceUrl: string = 'http://rental-service:8060';
-  private paymentServiceUrl: string = 'http://payment-service:8050';
+  // private carsServiceUrl: string = 'http://car-service:8070';
+  // private rentalServiceUrl: string = 'http://rental-service:8060';
+  // private paymentServiceUrl: string = 'http://payment-service:8050';
+  private carsServiceUrl: string = 'http://localhost:8070';
+  private rentalServiceUrl: string = 'http://localhost:8060';
+  private paymentServiceUrl: string = 'http://localhost:8050';
 
   constructor(private readonly httpService: HttpService) {}
   //get
@@ -17,7 +21,6 @@ export class AppService {
         `${this.carsServiceUrl}/cars?page=${page}&size=${size}&showAll=${showAll}`,
       ),
     );
-
     return cars.data;
   }
 
