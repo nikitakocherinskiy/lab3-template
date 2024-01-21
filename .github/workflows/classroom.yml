@@ -95,6 +95,11 @@ jobs:
         run: sleep 420s
         shell: bash
 
+      - name: Check container
+        timeout-minutes: 30
+        run: |
+          docker ps
+
       - name: Run API Tests
         timeout-minutes: 10
         run: ./scripts/test-script.sh
