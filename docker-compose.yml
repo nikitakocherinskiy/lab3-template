@@ -1,20 +1,122 @@
 version: "3"
 services:
   postgres:
-    image: library/postgres:13
+    image: postgres:latest
     container_name: postgres
-    restart: on-failure
+    restart: always
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: "postgres"
-      POSTGRES_DB: postgres
-    volumes:
-      - db-data:/var/lib/postgresql/data
-      - ./postgres/:/docker-entrypoint-initdb.d/
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=postgres
+      - POSTGRES_HOST=postgres
     ports:
-      - "5432:5432"
+      - 5432:5432
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./postgres/:/docker-entrypoint-initdb.d/
+    networks:
+      - default
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 1s
+      timeout: 3s
+      retries: 30
 
-# TODO добавить сервисы
+  gateway:
+    stdin_open: true
+    depends_on:
+      - postgres
+    links:
+      - postgres
+    container_name: gateway-service
+    ports:
+      - 8080:8080
+    build:
+      context: gateway-service
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: npm run start:dev
+    restart: always
+    networks:
+      - default
+
+  car:
+    stdin_open: true
+    depends_on:
+      - postgres
+      - gateway
+    links:
+      - postgres
+      - gateway
+    container_name: car-service
+    ports:
+      - 8070:8070
+    build:
+      context: car-service
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+      - /app/node_modules
+    env_file:
+      - car-service/.env
+    command: npm run start:migrate:seed
+    restart: always
+    networks:
+      - default
+
+  rental:
+    stdin_open: true
+    depends_on:
+      - postgres
+      - gateway
+    links:
+      - postgres
+      - gateway
+    container_name: rental-service
+    ports:
+      - 8060:8060
+    build:
+      context: rental-service
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+      - /app/node_modules
+    env_file:
+      - rental-service/.env
+    command: npm run start:migrate:start
+    restart: always
+    networks:
+      - default
+
+  payment:
+    stdin_open: true
+    depends_on:
+      - postgres
+      - gateway
+    links:
+      - postgres
+      - gateway
+    container_name: payment-service
+    ports:
+      - 8050:8050
+    build:
+      context: payment-service
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - ../filldb/:/docker-entrypoint-initdb.d/
+    env_file:
+      - payment-service/.env
+    command: npm run start:migrate:start
+    restart: always
+    networks:
+      - default
 
 volumes:
-  db-data:
+  postgres-data:
+networks:
+  default:
+    driver: bridge

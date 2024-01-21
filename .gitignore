@@ -71,7 +71,7 @@ web_modules/
 .yarn-integrity
 
 # dotenv environment variables file
-.env
+# .env
 .env.test
 
 # parcel-bundler cache (https://parceljs.org/)
@@ -195,8 +195,8 @@ build-iPhoneSimulator/
 *.dll
 
 # Fortran module files
-*.mod
-*.smod
+# *.mod
+# *.smod
 
 # Compiled Static libraries
 *.lai
@@ -356,13 +356,13 @@ local.properties
 *.pdb
 
 # Kernel Module Compile Results
-*.mod*
-*.cmd
-.tmp_versions/
-modules.order
-Module.symvers
-Mkfile.old
-dkms.conf
+# *.mod*
+# *.cmd
+# .tmp_versions/
+# modules.order
+# Module.symvers
+# Mkfile.old
+# dkms.conf
 
 ### Python template
 # Byte-compiled / optimized / DLL files
@@ -625,7 +625,7 @@ config/master.key
 
 # dotenv, dotenv-rails
 # TODO Comment out these rules if environment variables can be committed
-.env.*
+# .env.*
 
 ## Environment normalization:
 /.bundle

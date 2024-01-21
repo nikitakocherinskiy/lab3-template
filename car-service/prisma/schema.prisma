@@ -1,0 +1,33 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+model Car {
+  id Int @id @default(autoincrement())
+  car_uid String @unique @db.Uuid
+  brand String @db.VarChar(80)
+  model String @db.VarChar(80)
+  registration_number String @db.VarChar(80)
+  power Int?
+  price Int
+  type CarType
+  availability Boolean
+  
+  @@map("cars")
+}
+
+enum CarType {
+  SEDAN
+  SUV
+  MINIVAN
+  ROADSTER
+}
