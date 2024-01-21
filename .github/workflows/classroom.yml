@@ -87,6 +87,7 @@ jobs:
         timeout-minutes: 30
         run: |
           docker compose up -d
+          docker ps
         env:
           WAIT_PORTS: 8080,8070,8060,8050
 

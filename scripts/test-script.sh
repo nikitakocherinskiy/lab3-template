@@ -25,9 +25,9 @@ success() {
   newman run \
     --delay-request=100 \
     --folder=success \
-    --export-environment "$variant"/postman/environment.json \
-    --environment "$variant"/postman/environment.json \
-    "$variant"/postman/collection.json
+    --export-environment postman/environment.json \
+    --environment postman/environment.json \
+    postman/collection.json
 }
 
 step() {
