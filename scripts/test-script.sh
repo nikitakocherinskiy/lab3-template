@@ -39,14 +39,15 @@ step() {
   docker compose "$operation" "$service"
   if [[ "$operation" == "start" ]]; then
     "$path"/wait-for.sh -t 120 "http://localhost:$port/manage/health" -- echo "Host localhost:$port is active"
+    sleep 10
   fi
 
   newman run \
     --delay-request=100 \
     --folder=step"$step" \
-    --export-environment "$variant"/postman/environment.json \
-    --environment "$variant"/postman/environment.json \
-    "$variant"/postman/collection.json
+    --export-environment postman/environment.json \
+    --environment postman/environment.json \
+    postman/collection.json
 
   printf "=== Step %d completed ===\n" "$step"
 }

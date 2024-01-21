@@ -106,7 +106,7 @@ jobs:
         env:
           VARIANT: v3
           SERVICE_NAME: car-service
-          PORT_NUMBER: 8050
+          PORT_NUMBER: 8070
 
       - name: Stop containers
         if: always()
