@@ -91,7 +91,7 @@ jobs:
           sleep 300s
           ./scripts/wait-script.sh
         env:
-          WAIT_PORTS: 8080,8070,8060,8050
+          WAIT_PORTS: 8070,8060,8050
 
       - name: Check container
         timeout-minutes: 30
