@@ -91,6 +91,10 @@ jobs:
         env:
           WAIT_PORTS: 8080,8070,8060,8050
 
+      - name: Sleep for 7 minutes
+        run: sleep 420s
+        shell: bash
+
       - name: Run API Tests
         timeout-minutes: 10
         run: ./scripts/test-script.sh
