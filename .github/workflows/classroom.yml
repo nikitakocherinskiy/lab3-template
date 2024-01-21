@@ -99,7 +99,6 @@ jobs:
         timeout-minutes: 30
         run: |
           docker ps
-          docker logs -f --until=2s postgres
 
       - name: Run API Tests
         timeout-minutes: 10
