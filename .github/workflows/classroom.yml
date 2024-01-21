@@ -9,21 +9,21 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-    env:
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/grading-app
+    # services:
+    #   postgres:
+    #     image: postgres
+    #     env:
+    #       POSTGRES_USER: postgres
+    #       POSTGRES_PASSWORD: postgres
+    #     options: >-
+    #       --health-cmd pg_isready
+    #       --health-interval 10s
+    #       --health-timeout 5s
+    #       --health-retries 5
+    #     ports:
+    #       - 5432:5432
+    # env:
+    #   DATABASE_URL: postgresql://postgres:postgres@localhost:5432/grading-app
     steps:
       - uses: actions/checkout@v3
         with:
@@ -58,14 +58,14 @@ jobs:
       - name: Build rental-service
         run: npm run build --prefix rental-service
 
-      - name: Database migration for payment-service
-        run: npm run db:push --prefix payment-service
+      # - name: Database migration for payment-service
+      #   run: npm run db:push --prefix payment-service
 
-      - name: Database migration for car-service
-        run: npm run db:push --prefix car-service
+      # - name: Database migration for car-service
+      #   run: npm run db:push --prefix car-service
 
-      - name: Database migration for rental-service
-        run: npm run db:push --prefix rental-service
+      # - name: Database migration for rental-service
+      #   run: npm run db:push --prefix rental-service
 
       - name: Run Unit Tests for gateway-service
         run: npm run test --prefix gateway-service
@@ -98,7 +98,9 @@ jobs:
       - name: Check container
         timeout-minutes: 30
         run: |
+          docker ps
           docker logs -f --until=2s car-service
+          docker logs -f --until=2s postgres
 
       - name: Run API Tests
         timeout-minutes: 10
