@@ -14,10 +14,15 @@ import {
 import { AppService } from './app.service';
 import { CreateRentalDto } from '../global-models/createRentalDto';
 import { Response } from 'express';
+import { InjectQueue } from '@nestjs/bull';
+import { Queue } from 'bull';
 
 @Controller('api/v1')
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  constructor(
+    private readonly appService: AppService,
+    @InjectQueue('rental') private rentalQueue: Queue,
+  ) {}
 
   @Get('cars')
   async getCars(
@@ -31,10 +36,10 @@ export class AppController {
     } catch (e) {
       throw new HttpException(
         {
-          status: HttpStatus.BAD_REQUEST,
-          error: 'Invalid data',
+          status: e.status,
+          error: e.statusText,
         },
-        HttpStatus.BAD_REQUEST,
+        e.getStatus(),
         {
           cause: e,
         },
@@ -50,10 +55,10 @@ export class AppController {
     } catch (e) {
       throw new HttpException(
         {
-          status: HttpStatus.BAD_REQUEST,
-          error: 'Invalid data',
+          status: e.status,
+          error: e.statusText,
         },
-        HttpStatus.BAD_REQUEST,
+        e.getStatus(),
         {
           cause: e,
         },
@@ -70,10 +75,19 @@ export class AppController {
       const rental = await this.appService.getUserRental(userName, rentalId);
       return rental;
     } catch (e) {
+      await this.rentalQueue.add(
+        'get-rentals',
+        { userName, rentalId },
+        {
+          attempts: 5,
+          delay: 10000,
+        },
+      );
+
       throw new HttpException(
         {
           status: HttpStatus.NOT_FOUND,
-          error: 'Билет не найден',
+          error: 'Rental not found',
         },
         HttpStatus.NOT_FOUND,
         {
@@ -98,12 +112,21 @@ export class AppController {
       res.status(HttpStatus.OK).send(rental);
       return rental;
     } catch (e) {
+      if (
+        e instanceof HttpException &&
+        e.getStatus() === HttpStatus.SERVICE_UNAVAILABLE
+      ) {
+        throw new HttpException(
+          'Payment Service unavailability',
+          HttpStatus.SERVICE_UNAVAILABLE,
+        );
+      }
       throw new HttpException(
         {
-          status: HttpStatus.NOT_FOUND,
-          error: 'Ошибка валидации данных',
+          status: HttpStatus.SERVICE_UNAVAILABLE,
+          error: 'Payment Service unavailability',
         },
-        HttpStatus.NOT_FOUND,
+        HttpStatus.SERVICE_UNAVAILABLE,
         {
           cause: e,
         },
@@ -146,14 +169,13 @@ export class AppController {
       res.status(HttpStatus.NO_CONTENT).send('Аренда успешно отменена');
       return rental;
     } catch (e) {
-      throw new HttpException(
+      res.status(HttpStatus.NO_CONTENT).send('Аренда успешно отменена');
+      await this.rentalQueue.add(
+        'delete',
+        { userName, rentalId },
         {
-          status: HttpStatus.NOT_FOUND,
-          error: 'Аренда не найдена',
-        },
-        HttpStatus.NOT_FOUND,
-        {
-          cause: e,
+          attempts: 10,
+          delay: 300,
         },
       );
     }

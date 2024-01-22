@@ -39,6 +39,7 @@ export class AppService {
         status: 'CANCELED',
       },
     });
+    console.log(pay);
     return pay;
   }
 

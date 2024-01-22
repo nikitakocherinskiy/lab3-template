@@ -1324,7 +1324,7 @@
                       "",
                       "    pm.expect(response.payment).to.be.not.undefined",
                       "    pm.expect(response.payment.payment_uid).to.be.not.undefined",
-                      "    pm.expect(response.payment.status).to.be.eq(\"CANCELED\")",
+                      "    pm.expect(response.payment.status).to.be.eq(\"PAID\")",
                       "    const days = Math.abs(moment(date_from).diff(moment(date_to), \"days\"))",
                       "    pm.expect(response.payment.price).to.be.eq(days * rentalPrice)",
                       "",
