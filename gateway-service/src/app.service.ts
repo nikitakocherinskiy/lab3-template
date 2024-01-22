@@ -2,7 +2,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
-import { CreateRentalDto } from 'global-models/createRentalDto';
+import { CreateRentalDto } from '../global-models/createRentalDto';
 import { PaymentInfo } from 'global-models/paymentInfo';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
