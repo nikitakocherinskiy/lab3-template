@@ -9,12 +9,12 @@ import { Queue } from 'bull';
 import { CircuitBreakerDecorator } from './circuit-breaker';
 @Injectable()
 export class AppService {
-  private carsServiceUrl: string = 'http://car-service:8070';
-  private rentalServiceUrl: string = 'http://rental-service:8060';
-  private paymentServiceUrl: string = 'http://payment-service:8050';
-  // private carsServiceUrl: string = 'http://localhost:8070';
-  // private rentalServiceUrl: string = 'http://localhost:8060';
-  // private paymentServiceUrl: string = 'http://localhost:8050';
+  // private carsServiceUrl: string = 'http://car-service:8070';
+  // private rentalServiceUrl: string = 'http://rental-service:8060';
+  // private paymentServiceUrl: string = 'http://payment-service:8050';
+  private carsServiceUrl: string = 'http://localhost:8070';
+  private rentalServiceUrl: string = 'http://localhost:8060';
+  private paymentServiceUrl: string = 'http://localhost:8050';
 
   constructor(
     private readonly httpService: HttpService,
@@ -123,7 +123,7 @@ export class AppService {
     return rentals;
   }
 
-  @CircuitBreakerDecorator({ timeout: 5000 })
+  // @CircuitBreakerDecorator({ timeout: 5000 })
   async getUserRental(userName: string, rentalId: string) {
     const rental = await firstValueFrom(
       this.httpService.get(`${this.rentalServiceUrl}/rental/${rentalId}`, {
